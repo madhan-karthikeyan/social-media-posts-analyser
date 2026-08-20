@@ -26,9 +26,12 @@ Source extraction is strictly segregated from generated recommendations, ensurin
 - **Strengths & Opportunities:** Actionable bullet points for improvement.
 - **Accessibility Checks:** Audits for Alt-text, contrast, and layout.
 
-### UX
+### UX & Design
+- **Premium Dark Mode:** A sleek "Deep Space" glassmorphism aesthetic with glowing borders and dynamic radial gradients.
+- **Fluid Animations:** Staggered entry animations and micro-interactions powered by Framer Motion.
+- **Image Previews:** Automatic local Object URL generation for uploaded files to instantly preview images within the analysis results.
 - **Robust Navigation:** Browser Forward/Back history supported via `sessionStorage` and TanStack Router.
-- **Error Recovery:** Retry mechanisms and clear user-facing error boundaries.
+- **Error Recovery:** Anti-bot protection detection, retry mechanisms, and clear user-facing error boundaries.
 - **Loading States:** Real-time feedback for long-running extraction tasks.
 
 ## Architecture
@@ -328,6 +331,7 @@ Analysis result returned to Frontend
 ## Responsible AI / Hallucination Control
 
 To prevent prompt injection and LLM hallucinations:
+- **Advanced Prompt Engineering:** Strict evaluation principles that prioritize contextual trend-awareness and evidence-based analysis over generic design checklists.
 - **Sandboxing**: Extracted text (from OCR or metadata) is wrapped in strict XML tags (`<untrusted_content>`) within the system prompt.
 - **Explicit Instructions**: The system prompt strictly dictates that the LLM must *not* obey any instructions found inside the untrusted content tags.
 - **Objective Stance**: The model is prompted to audit accessibility and visual hierarchy based on observable facts, rather than fabricating arbitrary engagement metrics or predictive scores.
