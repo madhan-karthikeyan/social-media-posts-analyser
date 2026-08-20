@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-pytesseract
+requests
 Pillow
 pymupdf4llm
 groq

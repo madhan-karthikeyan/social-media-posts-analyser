@@ -6,7 +6,7 @@
 
 The Social Media Content Analyzer is a full-stack application designed to ingest content from various sources, normalize it, and leverage Large Language Models (LLMs) to provide actionable feedback. It accepts public social media URLs (LinkedIn, X, Instagram) and local file uploads (images and PDFs) as source content.
 
-The system relies on a modular extraction pipeline using PyMuPDF for documents, Tesseract OCR for vision-only assets, and BeautifulSoup for HTML metadata scraping. Once the raw content and visual context are extracted, they are passed to an LLM to generate structured insights focusing on tone, clarity, visual hierarchy, and accessibility improvements. 
+The system relies on a modular extraction pipeline using PyMuPDF for documents, OCR.space API for vision-only assets, and BeautifulSoup for HTML metadata scraping. Once the raw content and visual context are extracted, they are passed to an LLM to generate structured insights focusing on tone, clarity, visual hierarchy, and accessibility improvements. 
 
 Source extraction is strictly segregated from generated recommendations, ensuring that the system acts as an objective auditing tool rather than fabricating metrics or hallucinating engagement data.
 
@@ -17,7 +17,7 @@ Source extraction is strictly segregated from generated recommendations, ensurin
 - **URL Input:** Direct text input for public social media URLs.
 
 ### Extraction
-- **Image OCR:** Text extraction from image assets via Tesseract.
+- **Image OCR:** Text extraction from image assets via OCR.space API.
 - **PDF Extraction:** Text extraction from standard and scanned PDFs (up to 20 pages).
 - **Metadata Scraping:** Retrieval of OpenGraph, Twitter Cards, and standard metadata from public posts.
 
@@ -39,7 +39,7 @@ flowchart TD
     B --> C{Input Type}
     C -->|File Upload| D[File Pipeline]
     C -->|URL Payload| E[URL Pipeline]
-    D --> F[PyMuPDF / Tesseract OCR]
+    D --> F[PyMuPDF / OCR.space]
     E --> G[BeautifulSoup / HTTPX Scraper]
     F --> H[Normalized Content & Base64 Image]
     G --> H
@@ -62,7 +62,7 @@ MIME / Magic Byte Validation
   ↓
 Detect File Type (Image / PDF)
   ↓
-PyMuPDF Text Extraction / Tesseract OCR
+PyMuPDF Text Extraction / OCR.space OCR
   ↓
 Normalize Extracted Content
   ↓
@@ -112,7 +112,7 @@ Structured Result
 | **Routing** | TanStack Router | Type-safe URL search parameters and navigation |
 | **Backend** | Python 3.10+, FastAPI | High-performance ASGI orchestration layer |
 | **Scraping** | HTTPX, BeautifulSoup4 | Async network requests and HTML parsing |
-| **OCR / Docs**| PyTesseract, PyMuPDF, Pillow | Image verification, OCR, and Document parsing |
+| **OCR / Docs**| OCR.space, PyMuPDF, Pillow | Image verification, OCR, and Document parsing |
 | **LLM** | Groq SDK (Llama-3) | Ultra-fast inference and JSON structure validation |
 
 ## Project Structure
@@ -124,7 +124,7 @@ Structured Result
 │   ├── models.py                # Pydantic Schemas
 │   ├── services/
 │   │   ├── groq_service.py      # LLM Integration
-│   │   ├── ocr.py               # Tesseract Integration
+│   │   ├── ocr.py               # OCR.space API Integration
 │   │   ├── pdf.py               # PyMuPDF Integration
 │   │   └── url_service.py       # Metadata Scraping & Validation
 │   ├── tests/                   # Pytest Suite
@@ -148,7 +148,7 @@ Structured Result
 ### Prerequisites
 - Node.js 20+
 - Python 3.10+
-- Tesseract OCR (`sudo apt-get install tesseract-ocr` or `brew install tesseract`)
+- OCR.space API Key (Free tier available)
 - Groq API Key
 
 ### Installation
@@ -166,6 +166,7 @@ Create a `.env` file in the root directory (or inside `backend/`).
 | Variable | Required | Description |
 | :--- | :--- | :--- |
 | `GROQ_API_KEY` | **Yes** | API Key for authenticating with Groq |
+| `OCR_KEY` | **Yes** | Your free API key from OCR.space for image text extraction |
 | `CORS_ORIGINS` | No | Comma-separated list of allowed origins (e.g. `https://yourdomain.com`). Defaults to `http://localhost:5173`. |
 
 ### Running the Backend
@@ -292,14 +293,14 @@ Normalized content (Caption + Author)
 ## OCR / PDF Pipeline
 
 ### OCR
-- **Engine**: PyTesseract.
-- **Handling**: Images are verified strictly using `Pillow.verify()` before OCR processing to ensure binary safety.
+- **Engine**: OCR.space API (`OCREngine: 2`).
+- **Handling**: Images are verified strictly using `Pillow.verify()` before OCR processing to ensure binary safety. Images larger than 1MB are automatically downscaled and compressed to JPEG to fit within the free-tier API limits.
 - **Failure Behavior**: If OCR fails or yields no text, the system relies entirely on the Groq LLM's vision capabilities to assess the content.
 
 ### PDF
 - **Engine**: PyMuPDF (`fitz`).
 - **Handling**: Analyzes the first 20 pages. Extracts plaintext layers natively.
-- **Scanned Documents**: If no extractable text layer is found on a page, it falls back to rendering the page as a Pixmap and passing it to Tesseract for OCR.
+- **Scanned Documents**: If no extractable text layer is found on a page, it falls back to rendering the page as a Pixmap, compressing it, and passing it to OCR.space.
 - **Security**: The file must strictly begin with `%PDF-` magic bytes.
 
 ## AI / LLM Pipeline
@@ -362,7 +363,7 @@ The test suite leverages `unittest.mock.AsyncMock` to isolate network calls, sim
 - **Platform Restrictions**: Instagram and LinkedIn aggressively block unauthenticated IP addresses. URL scraping will occasionally fail with `LOGIN_REQUIRED`.
 - **Private Content**: Authenticated, private, or closed-group posts cannot be analyzed via URL. 
 - **Video / Reels**: Video assets and Instagram Reels are currently unsupported.
-- **OCR Quality**: Tesseract's accuracy is heavily dependent on the resolution, contrast, and font clarity of the source image.
+- **OCR Quality**: OCR.space is generally accurate, but heavily degraded or stylized text may still be missed.
 
 ## Design Decisions
 
@@ -370,7 +371,7 @@ The test suite leverages `unittest.mock.AsyncMock` to isolate network calls, sim
 Given the MVP scope, a single FastAPI backend simplifies deployment and orchestration. Splitting the scraper, OCR, and LLM services into separate microservices would introduce unnecessary network overhead and deployment complexity.
 
 ### Why OCR + LLM Vision?
-While Llama-3 Vision can read some text in images, dedicated Tesseract OCR consistently extracts small, high-density text from infographics and PDFs much more reliably. Passing the extracted OCR text alongside the image context provides the LLM with the most robust data set.
+While Llama-3 Vision can read some text in images, dedicated OCR APIs consistently extract small, high-density text from infographics and PDFs much more reliably and cheaply. Passing the extracted OCR text alongside the image context provides the LLM with the most robust data set.
 
 ### Why Public Metadata instead of Official APIs?
 Official APIs for LinkedIn and Instagram require extensive developer verification, OAuth flows, and strict usage quotas. Public metadata scraping allows for immediate, frictionless utility, albeit with the trade-off of occasional login walls.

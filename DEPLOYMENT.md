@@ -49,6 +49,7 @@ apt-get install docker-compose-plugin
    Add your API keys and configuration:
    ```env
    GROQ_API_KEY=your_groq_api_key_here
+   OCR_KEY=your_ocr_space_api_key
    
    # Optional: Restrict CORS to your domain name (Highly Recommended for Production)
    # CORS_ORIGINS=https://yourdomain.com

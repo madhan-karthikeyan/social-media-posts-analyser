@@ -11,6 +11,7 @@ services:
     environment:
       # This will pull from the .env file in the root directory
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - OCR_KEY=${OCR_KEY}
     restart: unless-stopped
 
   frontend:

@@ -1,12 +1,5 @@
 FROM python:3.10-slim
 
-# Install system dependencies, specifically Tesseract OCR for image text extraction
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    tesseract-ocr-eng \
-    libgl1 \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
 # Install Python dependencies
