@@ -1,0 +1,12 @@
+# Railway defaults to Nixpacks for building apps without a Dockerfile.
+# Because this application requires Tesseract OCR (a system-level dependency), 
+# we must explicitly instruct Nixpacks to install it via APT.
+
+[phases.setup]
+aptPkgs = ["tesseract-ocr", "tesseract-ocr-eng", "libgl1"]
+
+[phases.install]
+cmds = ["cd backend && pip install -r requirements.txt"]
+
+[start]
+cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
