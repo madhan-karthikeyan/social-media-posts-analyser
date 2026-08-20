@@ -1,8 +1,24 @@
-# Social Media Content Analyzer
+<div align="center">
 
-> Analyze social-media content from uploaded images, PDFs, or public post URLs and receive structured content insights and improvement recommendations.
+# 🚀 Social Media Content Analyzer
 
-## Overview
+**Analyze social-media content from uploaded images, PDFs, or public post URLs and receive structured content insights and improvement recommendations.**
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Groq-000000?style=for-the-badge&logo=groq&logoColor=white" alt="Groq" />
+  <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white" alt="Framer" />
+</p>
+
+</div>
+
+---
+
+## 📖 Overview
 
 The Social Media Content Analyzer is a full-stack application designed to ingest content from various sources, normalize it, and leverage Large Language Models (LLMs) to provide actionable feedback. It accepts public social media URLs (LinkedIn, X, Instagram) and local file uploads (images and PDFs) as source content.
 
