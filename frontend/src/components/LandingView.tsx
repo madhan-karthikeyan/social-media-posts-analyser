@@ -1,4 +1,5 @@
 import { Search, Info, Link, Upload } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { UrlInput } from './UrlInput';
 import { FileUpload } from './FileUpload';
 import { PlatformBadges } from './PlatformBadges';
@@ -39,7 +40,12 @@ export function LandingView({
   const canSubmit = inputMode === 'url' ? !!url.trim() : !!selectedFile;
 
   return (
-    <div className="fade-in">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+    >
       <div className="mb-8 text-center sm:mb-10">
         <h1 className="mb-2 text-2xl font-bold tracking-tight text-[var(--color-text)] sm:text-3xl">
           Analyze any public social image post
@@ -50,21 +56,8 @@ export function LandingView({
       </div>
 
       <div className="mx-auto max-w-[720px]">
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] overflow-hidden sm:p-7 p-5">
-          <div className="mb-4 flex rounded-[var(--radius-md)] bg-[var(--color-surface-alt)] p-1">
-            <button
-              type="button"
-              onClick={() => onInputModeChange('url')}
-              disabled={isLoading}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-all ${
-                inputMode === 'url'
-                  ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
-              } disabled:opacity-50`}
-            >
-              <Link className="h-4 w-4" />
-              Paste URL
-            </button>
+        <div className="glass-card rounded-[var(--radius-xl)] overflow-hidden sm:p-7 p-5">
+          <div className="mb-4 flex rounded-[var(--radius-md)] bg-[var(--color-surface-alt)] p-1 backdrop-blur-md">
             <button
               type="button"
               onClick={() => onInputModeChange('upload')}
@@ -78,9 +71,29 @@ export function LandingView({
               <Upload className="h-4 w-4" />
               Upload file
             </button>
+            <button
+              type="button"
+              onClick={() => onInputModeChange('url')}
+              disabled={isLoading}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-all ${
+                inputMode === 'url'
+                  ? 'bg-[var(--color-surface)] text-[var(--color-text)] shadow-sm'
+                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]'
+              } disabled:opacity-50`}
+            >
+              <Link className="h-4 w-4" />
+              Paste URL
+            </button>
           </div>
 
-          {inputMode === 'url' ? (
+          {inputMode === 'upload' ? (
+            <FileUpload
+              selectedFile={selectedFile}
+              onFileSelect={onFileSelect}
+              disabled={isLoading}
+              error={fileError}
+            />
+          ) : (
             <UrlInput
               value={url}
               onChange={onUrlChange}
@@ -89,21 +102,14 @@ export function LandingView({
               error={validationError}
               inputRef={inputRef}
             />
-          ) : (
-            <FileUpload
-              selectedFile={selectedFile}
-              onFileSelect={onFileSelect}
-              disabled={isLoading}
-              error={fileError}
-            />
           )}
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-col sm:flex-row items-center gap-3">
             <button
               type="button"
               onClick={onAnalyze}
               disabled={isLoading || !canSubmit}
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-11 w-full sm:flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Search className="h-4 w-4" />
               {isLoading ? 'Analyzing…' : 'Analyze post'}
@@ -112,7 +118,7 @@ export function LandingView({
               type="button"
               onClick={onClear}
               disabled={isLoading || (!url && !selectedFile)}
-              className="inline-flex h-11 items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-4 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Clear
             </button>
@@ -132,6 +138,6 @@ export function LandingView({
           No login required. We do not store your data.
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

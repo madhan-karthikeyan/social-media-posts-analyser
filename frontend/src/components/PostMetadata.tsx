@@ -23,7 +23,7 @@ function platformColor(platform: string): { bg: string, text: string } {
   }
 }
 
-export function PostMetadata({ data }: { data: PostData }) {
+export function PostMetadata({ data, previewUrl }: { data: PostData, previewUrl?: string | null }) {
   const pColor = platformColor(data.platform);
   
   return (
@@ -96,8 +96,12 @@ export function PostMetadata({ data }: { data: PostData }) {
               Image Metadata
             </h3>
             <div className="flex items-start gap-3">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
-                <Image className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+              <div className="flex h-16 w-16 overflow-hidden shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                ) : (
+                  <Image className="h-7 w-7 text-[var(--color-text-muted)]" strokeWidth={1.5} />
+                )}
               </div>
               <div className="space-y-1 text-sm">
                 <div className="font-medium text-[var(--color-text)]">

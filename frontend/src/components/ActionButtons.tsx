@@ -1,4 +1,5 @@
 import { RefreshCw, Pencil, Trash2, ArrowLeft, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface ActionButtonsProps {
   onRetry?: () => void;
@@ -22,52 +23,62 @@ export function ActionButtons({
   return (
     <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
       {showAnalyzeAnother && (
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onAnalyzeAnother}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] transition-colors hover:bg-[var(--color-accent-hover)]"
         >
           <ArrowLeft className="h-4 w-4" />
           Analyze another post
-        </button>
+        </motion.button>
       )}
       {onRetry && (
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onRetry}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--color-accent-hover)]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow)] transition-colors hover:bg-[var(--color-accent-hover)]"
         >
           <RefreshCw className="h-4 w-4" />
           Retry
-        </button>
+        </motion.button>
       )}
       {onEditUrl && (
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onEditUrl}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)]"
         >
           <Pencil className="h-4 w-4" />
           Edit URL
-        </button>
+        </motion.button>
       )}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         type="button"
         onClick={onClear}
-        className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)]"
+        className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-error-bg)] hover:text-[var(--color-error)] hover:border-[var(--color-error-border)]"
       >
         <Trash2 className="h-4 w-4" />
         Clear
-      </button>
+      </motion.button>
       {showDownloadJson && onDownloadJson && (
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={onDownloadJson}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)]"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)]"
         >
           <Download className="h-4 w-4" />
           Download JSON
-        </button>
+        </motion.button>
       )}
     </div>
   );

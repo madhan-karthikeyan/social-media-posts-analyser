@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CopyButtonProps {
   text: string;
@@ -21,10 +22,12 @@ export function CopyButton({ text, label = 'Copy', className = '' }: CopyButtonP
   };
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       type="button"
       onClick={handleCopy}
-      className={`inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-alt)] ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border-strong)] ${className}`}
     >
       {copied ? (
         <>
@@ -37,6 +40,6 @@ export function CopyButton({ text, label = 'Copy', className = '' }: CopyButtonP
           {label}
         </>
       )}
-    </button>
+    </motion.button>
   );
 }

@@ -8,6 +8,7 @@ import {
   ClipboardList,
   ArrowLeft,
 } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 import type { SuccessResponse } from '../types/api';
 import { PostMetadata } from './PostMetadata';
 import { AnalysisSection } from './AnalysisSection';
@@ -19,6 +20,7 @@ type AnalysisData = SuccessResponse['data'];
 
 interface ResultViewProps {
   data: AnalysisData;
+  previewUrl?: string | null;
   onAnalyzeAnother: () => void;
   onClear: () => void;
 }
@@ -52,8 +54,23 @@ function ReadabilityBadge({ level }: { level: string }) {
   );
 }
 
-export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps) {
+export function ResultView({ data, previewUrl, onAnalyzeAnother, onClear }: ResultViewProps) {
   const reportText = formatReportAsText(data);
+  
+  const container: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const item: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
 
   const handleDownloadJson = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -66,8 +83,13 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
   };
 
   return (
-    <div className="fade-in mx-auto max-w-[720px] space-y-4">
-      <div className="flex items-center">
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="mx-auto max-w-[720px] space-y-4"
+    >
+      <motion.div variants={item} className="flex items-center">
         <button
           onClick={onClear}
           className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors mb-2"
@@ -75,20 +97,22 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
           <ArrowLeft className="h-4 w-4" />
           Back to Analyzer
         </button>
-      </div>
+      </motion.div>
 
-      <PostMetadata data={data} />
+      <motion.div variants={item}>
+        <PostMetadata data={data} previewUrl={previewUrl} />
+      </motion.div>
 
-      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+      <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5 sm:p-6">
         <AnalysisSection title="Summary">
           <p className="text-[15px] leading-relaxed text-[var(--color-text)]">
             {data.analysis.summary}
           </p>
         </AnalysisSection>
-      </div>
+      </motion.div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)]">
+        <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5">
           <AnalysisSection title="What Works">
             <ul className="space-y-2">
               {data.analysis.visual_strengths.map((s, i) => (
@@ -99,9 +123,9 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
               ))}
             </ul>
           </AnalysisSection>
-        </div>
+        </motion.div>
 
-        <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)]">
+        <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5">
           <AnalysisSection title="What To Improve">
             <ul className="space-y-2">
               {data.analysis.improvement_opportunities.map((o, i) => (
@@ -112,10 +136,10 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
               ))}
             </ul>
           </AnalysisSection>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+      <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5 sm:p-6">
         <AnalysisSection title="Accessibility">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -153,9 +177,9 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
             </div>
           </div>
         </AnalysisSection>
-      </div>
+      </motion.div>
 
-      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+      <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5 sm:p-6">
         <div className="flex items-center justify-between">
           <AnalysisSection title="Caption Suggestion">
             <></>
@@ -165,9 +189,9 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
         <p className="mt-2 text-[15px] leading-relaxed text-[var(--color-text-secondary)]">
           {data.analysis.caption_recommendation}
         </p>
-      </div>
+      </motion.div>
 
-      <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+      <motion.div variants={item} className="glass-card rounded-[var(--radius-xl)] p-5 sm:p-6">
         <AnalysisSection title="Suggested Call to Action">
           <div className="flex items-start gap-2">
             <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-accent)]" />
@@ -176,17 +200,17 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
             </p>
           </div>
         </AnalysisSection>
-      </div>
+      </motion.div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="flex-1 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)]">
+        <motion.div variants={item} className="flex-1 glass-card rounded-[var(--radius-xl)] p-5">
           <AnalysisSection title="Confidence">
             <ConfidenceIndicator level={data.analysis.confidence} />
           </AnalysisSection>
-        </div>
+        </motion.div>
 
         {data.analysis.limitations.length > 0 && (
-          <div className="flex-1 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-alt)] p-5">
+          <motion.div variants={item} className="flex-1 glass-card bg-[var(--color-surface-alt)] rounded-[var(--radius-xl)] p-5">
             <AnalysisSection title="Limitations">
               <ul className="space-y-1.5">
                 {data.analysis.limitations.map((l, i) => (
@@ -197,11 +221,11 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
                 ))}
               </ul>
             </AnalysisSection>
-          </div>
+          </motion.div>
         )}
       </div>
 
-      <div className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-card)] sm:p-6">
+      <motion.div variants={item} className="flex flex-col gap-3 glass-card rounded-[var(--radius-xl)] p-5 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-sm font-semibold text-[var(--color-text)] flex items-center gap-2">
             <ClipboardList className="h-4 w-4 text-[var(--color-accent)]" />
@@ -216,7 +240,7 @@ export function ResultView({ data, onAnalyzeAnother, onClear }: ResultViewProps)
           showDownloadJson={true}
           onDownloadJson={handleDownloadJson}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

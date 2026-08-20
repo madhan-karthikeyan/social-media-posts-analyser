@@ -20,9 +20,10 @@ export function IndexRoute() {
   const [state, setState] = useState<UIState>({ type: 'INITIAL' });
   const [url, setUrl] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<InputMode>('url');
+  const [inputMode, setInputMode] = useState<InputMode>('upload');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -34,11 +35,15 @@ export function IndexRoute() {
     setValidationError(null);
     setSelectedFile(null);
     setFileError(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     if (view === 'results') {
       navigate({ to: '/', search: {} });
     }
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [navigate, view]);
+  }, [navigate, view, previewUrl]);
 
   const handleCancel = useCallback(() => {
     abortRef.current?.abort('user_cancel');
@@ -96,23 +101,37 @@ export function IndexRoute() {
 
     if (!file) {
       setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
       return;
     }
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
       setFileError('Unsupported file type. Please upload a JPG, PNG, WebP, GIF, or PDF.');
       setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
       return;
     }
 
     if (file.size > MAX_FILE_SIZE) {
       setFileError('The file is too large. Maximum size is 20 MB.');
       setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
       return;
     }
 
     setSelectedFile(file);
-  }, []);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(file));
+  }, [previewUrl]);
 
   const doFetchUrl = useCallback((targetUrl: string) => {
     const controller = new AbortController();
@@ -312,6 +331,7 @@ export function IndexRoute() {
         {state.type === 'SUCCESS' && (
           <ResultView
             data={state.data}
+            previewUrl={previewUrl}
             onAnalyzeAnother={resetToInitial}
             onClear={resetToInitial}
           />

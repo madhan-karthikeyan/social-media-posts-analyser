@@ -240,4 +240,11 @@ async def fetch_post_metadata_and_image(raw_url: str) -> Tuple[str, Dict[str, An
             return platform, public_context, image_bytes, content_type, warnings
 
         except httpx.RequestError as e:
+            err_msg = str(e).lower()
+            if "decompressing" in err_msg or "zlib" in err_msg or "header check" in err_msg:
+                raise ScrapingError(
+                    "NO_PUBLIC_METADATA", 
+                    f"The platform blocked our automated request (anti-bot protection). Please take a screenshot of the post and drag & drop the image instead!", 
+                    platform
+                )
             raise ScrapingError("NETWORK_ERROR", f"Could not connect to the post URL: {e}", platform)
