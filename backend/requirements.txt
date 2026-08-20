@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+pytesseract
+Pillow
+pymupdf4llm
+groq
+pydantic
+python-dotenv
+beautifulsoup4
+httpx
+pytest
+pytest-asyncio
