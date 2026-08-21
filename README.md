@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 Social Media Content Analyzer
+# Social Media Content Analyzer
 
 **Analyze social-media content from uploaded images, PDFs, or public post URLs and receive structured content insights and improvement recommendations.**
 
