@@ -62,7 +62,7 @@ flowchart TD
     E --> G[BeautifulSoup / HTTPX Scraper]
     F --> H[Normalized Content & Base64 Image]
     G --> H
-    H --> I[Groq SDK / Llama-3]
+    H --> I[Groq SDK / Vision LLM]
     I --> J[Structured Pydantic Validation]
     J --> A
 ```
@@ -85,7 +85,7 @@ PyMuPDF Text Extraction / OCR.space OCR
   ↓
 Normalize Extracted Content
   ↓
-LLM Analysis (Llama-3)
+LLM Analysis (Groq)
   ↓
 Structured Result
 ```
@@ -104,7 +104,7 @@ Image OCR Processing (If image is present)
   ↓
 Normalize Extracted Content
   ↓
-LLM Analysis (Llama-3)
+LLM Analysis (Groq)
   ↓
 Structured Result
 ```
@@ -132,7 +132,7 @@ Structured Result
 | **Backend** | Python 3.10+, FastAPI | High-performance ASGI orchestration layer |
 | **Scraping** | HTTPX, BeautifulSoup4 | Async network requests and HTML parsing |
 | **OCR / Docs**| OCR.space, PyMuPDF, Pillow | Image verification, OCR, and Document parsing |
-| **LLM** | Groq SDK (Llama-3) | Ultra-fast inference and JSON structure validation |
+| **LLM** | Groq SDK | Inference and JSON structure validation |
 
 ## Project Structure
 
@@ -158,6 +158,9 @@ Structured Result
 │   ├── package.json
 │   ├── Dockerfile
 │   └── nginx.conf
+├── demo/                        # Sample PDFs for manual testing
+├── docs/PRD.md                  # Product Requirements Document
+├── .env.example                 # Backend environment variable template
 ├── docker-compose.yml
 └── README.md
 ```
@@ -180,13 +183,21 @@ cd social-media-posts-analyser
 
 ### Environment Variables
 
-Create a `.env` file in the root directory (or inside `backend/`).
+Copy the provided templates and fill in your keys:
+
+```bash
+cp .env.example .env
+```
 
 | Variable | Required | Description |
 | :--- | :--- | :--- |
 | `GROQ_API_KEY` | **Yes** | API Key for authenticating with Groq |
 | `OCR_KEY` | **Yes** | Your free API key from OCR.space for image text extraction |
-| `CORS_ORIGINS` | No | Comma-separated list of allowed origins (e.g. `https://yourdomain.com`). Defaults to `http://localhost:5173`. |
+| `GROQ_VISION_MODEL` | No | Groq model override. Defaults to `qwen/qwen3.6-27b`. |
+
+The frontend reads an optional `VITE_API_URL` variable (see `frontend/.env.example`); it defaults to `/api`, which works with the Vite dev-server proxy and the production nginx setup without any configuration.
+
+> Note: CORS is currently open to all origins (`allow_origins=["*"]`) for development convenience.
 
 ### Running the Backend
 
@@ -331,7 +342,7 @@ Normalization & Sandboxing (<untrusted_content>)
     ↓
 Prompt construction (Strict instructions for auditing)
     ↓
-Groq SDK (Llama-3 / Vision Model)
+Groq SDK (Vision Model)
     ↓
 Structured JSON output
     ↓
@@ -341,7 +352,7 @@ Analysis result returned to Frontend
 ```
 
 - **Provider**: Groq.
-- **Model**: `llama-3.2-11b-vision-preview` for image-based tasks; `llama-3.3-70b-versatile` for text/PDF tasks.
+- **Model**: A single vision-capable chat model handles both image and text/PDF tasks. Defaults to `qwen/qwen3.6-27b` and can be overridden via the `GROQ_VISION_MODEL` environment variable.
 - **Structured Output**: The API uses Groq's `response_format={"type": "json_object"}` to guarantee deterministic structured responses matching a Pydantic schema.
 
 ## Responsible AI / Hallucination Control
@@ -363,7 +374,7 @@ To prevent prompt injection and LLM hallucinations:
 - **Streamed Limits**: Remote images are fetched using `AsyncClient.send(stream=True)`, reading byte chunks up to 20MB. If the file exceeds this limit, the connection is aborted to prevent DoS memory exhaustion.
 
 ### API Reliability
-- **Non-Blocking ThreadPool**: CPU-intensive `pytesseract` and `fitz` tasks are offloaded to `run_in_threadpool`, ensuring the asyncio event loop remains responsive.
+- **Non-Blocking ThreadPool**: CPU-intensive OCR and PDF extraction tasks are offloaded to `run_in_threadpool`, ensuring the asyncio event loop remains responsive.
 - **Bounded LLM Calls**: External LLM network requests are strictly wrapped with timeout thresholds.
 
 ## Testing
@@ -391,7 +402,7 @@ The test suite leverages `unittest.mock.AsyncMock` to isolate network calls, sim
 Given the MVP scope, a single FastAPI backend simplifies deployment and orchestration. Splitting the scraper, OCR, and LLM services into separate microservices would introduce unnecessary network overhead and deployment complexity.
 
 ### Why OCR + LLM Vision?
-While Llama-3 Vision can read some text in images, dedicated OCR APIs consistently extract small, high-density text from infographics and PDFs much more reliably and cheaply. Passing the extracted OCR text alongside the image context provides the LLM with the most robust data set.
+While vision LLMs can read some text in images, dedicated OCR APIs consistently extract small, high-density text from infographics and PDFs much more reliably and cheaply. Passing the extracted OCR text alongside the image context provides the LLM with the most robust data set.
 
 ### Why Public Metadata instead of Official APIs?
 Official APIs for LinkedIn and Instagram require extensive developer verification, OAuth flows, and strict usage quotas. Public metadata scraping allows for immediate, frictionless utility, albeit with the trade-off of occasional login walls.

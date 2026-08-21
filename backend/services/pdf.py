@@ -1,6 +1,9 @@
 import fitz  # PyMuPDF
+import logging
 import pymupdf4llm
 from services.ocr import perform_ocr_on_image
+
+logger = logging.getLogger(__name__)
 
 MAX_PDF_PAGES = 20
 MAX_TEXT_LENGTH = 4000
@@ -39,7 +42,7 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
             
         doc.close()
     except Exception as e:
-        print(f"PDF Extraction Error: {e}")
+        logger.error(f"PDF Extraction Error: {e}")
         
     final_text = "\n\n".join(combined_parts)
     if not final_text.strip():
