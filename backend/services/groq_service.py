@@ -74,6 +74,9 @@ Schema:
   "limitations": ["string, max 4 items"]
 }"""
 
+    import logging
+    logger = logging.getLogger(__name__)
+
     user_content = []
     
     # If text was extracted via OCR or MarkItDown, append it as context
@@ -90,53 +93,61 @@ Schema:
 
     # If it's an image, append the image data (PDFs are typically handled via the text context alone, unless we convert them to images)
     if "image" in content_type and image_base64:
+        # Prevent double-prefixing if the frontend already included 'data:image/...;base64,'
+        if image_base64.startswith("data:"):
+            url = image_base64
+        else:
+            url = f"data:{content_type};base64,{image_base64}"
+            
         user_content.append({
             "type": "image_url",
             "image_url": {
-                "url": f"data:{content_type};base64,{image_base64}"
+                "url": url
             }
         })
 
-    for attempt in range(2):
-        try:
-            chat_completion = client.chat.completions.create(
-                messages=[
-                    {
-                        "role": "system",
-                        "content": system_prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": user_content
-                    }
-                ],
-                model=model,
-                temperature=0.2,
-                max_tokens=4096,
-                response_format={"type": "json_object"}
-            )
+    try:
+        # The Groq SDK defaults to max_retries=2, which automatically handles 429s, 503s, and timeouts.
+        # We don't need a custom loop. 400s are correctly NOT retried by the SDK.
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_content
+                }
+            ],
+            model=model,
+            temperature=0.2,
+            max_tokens=4096,
+            response_format={"type": "json_object"}
+        )
 
-            response_content = chat_completion.choices[0].message.content
-            if not response_content:
-                raise ValueError("Groq returned empty response")
+        response_content = chat_completion.choices[0].message.content
+        if not response_content:
+            raise ValueError("Groq returned empty response")
 
-            parsed_json = json.loads(response_content)
-            return AnalysisReport(**parsed_json)
+        parsed_json = json.loads(response_content)
+        return AnalysisReport(**parsed_json)
 
-        except groq.RateLimitError:
-            if attempt == 0:
-                time.sleep(2)
-                continue
-            raise ScrapingError("RATE_LIMITED", "AI provider rate limit exceeded. Please try again later.")
-        except groq.APITimeoutError:
-            if attempt == 0:
-                continue
-            raise ScrapingError("NETWORK_ERROR", "AI provider timed out.")
-        except json.JSONDecodeError:
-            raise ScrapingError("NO_PUBLIC_METADATA", "AI provider returned malformed JSON.")
-        except Exception as e:
-            if attempt == 0:
-                continue
-            raise ScrapingError("NETWORK_ERROR", f"Failed to analyze content with Groq: {str(e)}")
-            
-    raise ScrapingError("NETWORK_ERROR", "Failed to analyze content with Groq after retries.")
+    except groq.BadRequestError as e:
+        logger.error(f"Groq 400 Bad Request: {e.status_code} - {e.response.text}")
+        raise ScrapingError("NETWORK_ERROR", f"Groq rejected the request (400). Check log for details.")
+    except groq.RateLimitError as e:
+        logger.error(f"Groq Rate Limit Exceeded after SDK retries: {e.status_code} - {e.response.text}")
+        raise ScrapingError("RATE_LIMITED", "AI provider rate limit exceeded. Please try again later.")
+    except groq.APITimeoutError:
+        logger.error("Groq API Timeout")
+        raise ScrapingError("NETWORK_ERROR", "AI provider timed out.")
+    except json.JSONDecodeError:
+        logger.error(f"Groq returned malformed JSON: {response_content}")
+        raise ScrapingError("NO_PUBLIC_METADATA", "AI provider returned malformed JSON.")
+    except groq.APIStatusError as e:
+        logger.error(f"Groq API Error: {e.status_code} - {e.response.text}")
+        raise ScrapingError("NETWORK_ERROR", f"AI provider error: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error calling Groq: {str(e)}")
+        raise ScrapingError("NETWORK_ERROR", f"Failed to analyze content with Groq: {str(e)}")
